@@ -80,7 +80,90 @@ TOC.Control = TOC.Class.extend({
             	$('#layers').append($('<h3>').text(group));
             	$('#layers').append($('<div id="' + group + '">'));
             }
+            this.addLayerToGroup(group, layer);
         }
         $('#layers').accordion();
+	},
+	
+	/**
+	 * Method: addLayerToGroup add layers to a group created previously
+	 */
+	addLayerToGroup : function(group, layer) {
+		
+		var baseLayer = layer.isBaseLayer;
+		
+		if(layer.displayInLayerSwitcher) {
+
+			// only check a baselayer if it is *the* baselayer, check data
+			// layers if they are visible
+			var checked = (baseLayer) ? (layer == this.map.baseLayer) : layer.getVisibility();
+
+			// create input element
+			var inputElem = $('<input>');
+			inputElem.attr("id", "input_" + layer.name.split(' ').join('').toLowerCase())
+				.attr("name", (baseLayer) ? group + "_baseLayers" : layer.name)
+				.attr("type", (baseLayer) ? "radio" : "checkbox")
+				.val(layer.name)
+				.attr("checked", checked)
+				.attr("defaultChecked", checked)
+				.css("verticalAlign" , "middle")
+				.attr('title', (checked) ? 'Desactivar capa' : 'Activar capa'); // TODO Localize
+			
+			var context = {
+				'inputElem' : inputElem,
+				'layer' : layer,
+				'group' : group,
+				'toc' : this
+			};
+			
+			inputElem.on(
+					'change',
+					null,
+					context,
+					function(evt) {
+						if(evt.data.inputElem.attr('type') == "radio")
+							evt.data.layer.map.setBaseLayer(evt.data.layer);
+						else {
+							evt.data.layer.setVisibility((evt.data.inputElem.attr('checked') === 'checked') ? true : false);
+						}
+					}
+			);
+
+			// create span
+			var labelSpan = $("<span>");
+			labelSpan
+				.attr("class", "labelSpan")
+				.text(layer.name)
+				.css({"verticalAlign": "middle", "cursor": "pointer"})
+				.attr("title", group + " - " + layer.name);
+
+			// create image
+			var image = $('<img>', {
+				src : "../images/layer-panel.png",
+				css : {
+					'verticalAlign' : "middle",
+					'margin-left': '3px', 
+					'margin-right': '3px',
+					'margin-bottom': '1px',
+					'margin-top': '1px',
+					'cursor' : 'pointer'
+				}
+			}).attr("title", "Lenda/Transparencia"); // TODO Localice
+
+			/*var panel = new PanelLayerControl(null);
+			panel.initialize(null);
+			$(image).on("click", null, context, function(evt) {
+				panel.launch(evt);
+			});*/
+
+			// create li
+			var line = $('<li>');
+
+			line.append(inputElem)
+				.append(image)
+				.append(labelSpan);				
+
+			$("#" + group).append(line);
+		}
 	}
 });
