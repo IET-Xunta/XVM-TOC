@@ -15,9 +15,14 @@ TOC.Control = TOC.Class.extend({
 	map : null,
 	
 	/**
+	 * Property: OpenLayers.Map
+	 */	
+	reader: null, 
+	
+	/**
 	 * Property: path to defaults config parameters
 	 */
-	DEFAULTCONFIG : 'config/toc.options.yaml',
+	DEFAULTCONFIG : 'toc/config/toc.options.yaml',
 	
 	/**
 	 * Property: default tabs
@@ -32,15 +37,26 @@ TOC.Control = TOC.Class.extend({
 	/**
 	 * Method: initializes TOC into XVM.Map
 	 * 
+	 * @param 
+	 */
+	initialize : function(eventbus, reader) {
+		this.reader = reader;
+		eventbus.addListener(this, 'addTOC', 'addTOC');
+	},
+	
+	/**
+	 * Method: addTOC
+	 * Adds TOC to map
+	 * 
 	 * @param XVM.Loader.Reader
 	 * @param XVM.Map
 	 */
-	initialize : function(reader, map) {
+	addTOC : function(map) {
 		this.map = map.OLMap;
-		reader.readFromFile(
+		this.reader.readFromFile(
 				this.DEFAULTCONFIG,
 				this.createTOC,
-				this);
+				this);		
 	},
 	
 	/**
@@ -59,9 +75,10 @@ TOC.Control = TOC.Class.extend({
 	/**
 	 * Method: creates TOC
 	 */
-	createTOC : function(response) {
-		this.createTabs();
-		this.addLayersToTOC();
+	createTOC : function(response, context) {
+		var this_ = context;
+		this_.createTabs();
+		this_.addLayersToTOC();
 	},
 	
 	/**
@@ -139,7 +156,7 @@ TOC.Control = TOC.Class.extend({
 
 			// create image
 			var image = $('<img>', {
-				src : "../images/layer-panel.png",
+				src : "toc/images/layer-panel.png",
 				css : {
 					'verticalAlign' : "middle",
 					'margin-left': '3px', 
