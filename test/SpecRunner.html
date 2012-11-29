@@ -8,14 +8,30 @@
   <link rel="stylesheet" type="text/css" href="lib/jasmine-1.2.0/jasmine.css">
   <script type="text/javascript" src="lib/jasmine-1.2.0/jasmine.js"></script>
   <script type="text/javascript" src="lib/jasmine-1.2.0/jasmine-html.js"></script>
+  <script type="text/javascript" src="lib/jasmine-jquery-1.4.2.js"></script>
 
+  <!-- include library files here... -->
+  <link rel="stylesheet" href="../styles/custom-theme/jquery-ui-1.8.18.custom.css" type="text/css">
+  <script type="text/javascript" src="../lib/jQuery/jquery-1.8.0.min.js"></script>
+  <script type="text/javascript" src="../lib/jQuery/jquery-ui-1.8.18.custom.min.js"></script>
+  <script type="text/javascript" src="../lib/jQuery/jquery.i18n.properties-min.js"></script>
+  <script type="text/javascript" src="../lib/jQuery/jquery.tmpl.js"></script>
+  <script type="text/javascript" src="../lib/Ol/OpenLayers.js"></script>
+  <script type="text/javascript" src="../lib/YAML/js-yaml.js"></script>
+  
+  <!-- include references to XVM -->
+  <script type="text/javascript" src="../../dev/XVM/src/XVM.js"></script>
+  <script type="text/javascript" src="../../dev/XVM/src/Map.js"></script>
+  <script type="text/javascript" src="../../dev/XVM/src/Event/EventBus.js"></script>
+  <script type="text/javascript" src="../../dev/XVM/src/Loader/Reader.js"></script>
+  
   <!-- include source files here... -->
-  <script type="text/javascript" src="spec/SpecHelper.js"></script>
-  <script type="text/javascript" src="spec/PlayerSpec.js"></script>
+  <script type="text/javascript" src="../src/TOC.js"></script>
+  <script type="text/javascript" src="../src/Class.js"></script>
+  <script type="text/javascript" src="../src/Control.js"></script>
 
   <!-- include spec files here... -->
-  <script type="text/javascript" src="src/Player.js"></script>
-  <script type="text/javascript" src="src/Song.js"></script>
+  <script type="text/javascript" src="spec/SpecTOC.js"></script>
 
   <script type="text/javascript">
     (function() {
@@ -49,5 +65,6 @@
 </head>
 
 <body>
+<!-- div id="toc"></div-->
 </body>
 </html>
