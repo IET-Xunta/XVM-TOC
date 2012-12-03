@@ -41,7 +41,7 @@ TOC.Control = TOC.Class.extend({
 	 */
 	initialize : function(eventbus, reader) {
 		this.reader = reader;
-		eventbus.addListener(this, 'mapCompleted', 'addTOC');
+		eventbus.addListener(this, 'mapCompleted', 'addMapToTOC');
 	},
 	
 	/**
@@ -51,7 +51,7 @@ TOC.Control = TOC.Class.extend({
 	 * @param XVM.Loader.Reader
 	 * @param XVM.Map
 	 */
-	addTOC : function(map) {
+	addMapToTOC : function(map) {
 		this.map = map.OLMap;
 		this.reader.readFromFile(
 				this.DEFAULTCONFIG,
