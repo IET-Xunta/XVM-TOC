@@ -41,7 +41,7 @@ TOC.Control = TOC.Class.extend({
 	 */
 	initialize : function(eventbus, reader) {
 		this.reader = reader;
-		eventbus.addListener(this, 'addTOC', 'addTOC');
+		eventbus.addListener(this, 'mapCompleted', 'addTOC');
 	},
 	
 	/**
