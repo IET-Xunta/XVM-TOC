@@ -70,22 +70,28 @@ describe("TOC Control tests:", function() {
 	// Add fakecontrols
 	fakemap.addControls([]);
 	
-	var fakereader = new XVM.Loader.Reader();
-	XVM.Reader = fakereader;
-	var faketoc = null;
+	var fakereader = new XVM.Loader.Reader();	
+	var faketoc = new TOC.Control();
+	faketoc.DEFAULTCONFIG = '../config/';
+	faketoc.DEFAULTIMAGES = '../images/';		
 	
 	beforeEach(function(){
 		loadFixtures("TOC.html");
 		spyOn(fakereader, 'readFromFile');
 		spyOn(fakeeventbus, 'addListener');
-		faketoc = new TOC.Control();
-		faketoc.addMapToTOC(fakemap);
-		faketoc.createTabs();
 	});
 	
-	it("Load TOC into TOC div", function(){
+	XVM.Reader = fakereader;
+	
+	it("Add map to TOC reads config", function(){
+		faketoc.addMapToTOC(fakemap);
+		expect(faketoc.map).toEqual(fakemap.OLMap);
+		expect(fakereader.readFromFile).toHaveBeenCalled();
+	});
+	
+	it("Load TOC into TOC div and create tabs", function(){
+		faketoc.createTabs();
 		expect($(faketoc.div)).toBeVisible();
-		//expect($('#visibles > :span').)
 	});
 	
 	it("Create group layers", function() {
@@ -103,7 +109,6 @@ describe("TOC Control tests:", function() {
 	});
 	
 	it("Change setbaselayer sets new baseLayer into map", function() {
-		faketoc.addLayersToTOC();
 		$('#input_fakedata').change();
 		expect(faketoc.map.baseLayer).toEqual(fakeLayer);
 		$('#input_anotherfakedata').change();
@@ -111,7 +116,6 @@ describe("TOC Control tests:", function() {
 	});
 	
 	it("Change visibility sets this into map", function() {
-		faketoc.addLayersToTOC();
 		$('#input_fakeoverlay1').attr('checked', false).change();
 		expect(faketoc.map.getLayersByName('fakeoverlay1')[0].visibility).toBeFalsy();
 		$('#input_fakeoverlay1').attr('checked', true).change();

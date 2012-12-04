@@ -17,7 +17,12 @@ TOC.Control = TOC.Class.extend({
 	/**
 	 * Property: path to defaults config parameters
 	 */
-	DEFAULTCONFIG : 'toc/config/toc.options.yaml',
+	DEFAULTCONFIG : 'toc/config/',
+	
+	/**
+	 * 
+	 */
+	DEFAULTIMAGES : 'toc/images/',
 	
 	/**
 	 * Property: default tabs
@@ -47,7 +52,7 @@ TOC.Control = TOC.Class.extend({
 	addMapToTOC : function(map) {
 		this.map = map.OLMap;
 		XVM.Reader.readFromFile(
-				this.DEFAULTCONFIG,
+				this.DEFAULTCONFIG + 'toc.options.yaml',
 				this.createTOC,
 				this);		
 	},
@@ -149,7 +154,7 @@ TOC.Control = TOC.Class.extend({
 
 			// create image
 			var image = $('<img>', {
-				src : "toc/images/layer-panel.png",
+				src : this.DEFAULTIMAGES + "layer-panel.png",
 				css : {
 					'verticalAlign' : "middle",
 					'margin-left': '3px', 
@@ -160,7 +165,7 @@ TOC.Control = TOC.Class.extend({
 				}
 			}).attr("title", "Lenda/Transparencia"); // TODO Localice
 
-			/*var panel = new PanelLayerControl(null);
+			/*var panel = new TOC.Panel();
 			panel.initialize(null);
 			$(image).on("click", null, context, function(evt) {
 				panel.launch(evt);
