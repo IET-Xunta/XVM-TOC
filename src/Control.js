@@ -41,12 +41,12 @@ TOC.Control = TOC.Class.extend({
 	 */
 	initialize : function(eventbus, reader) {
 		this.reader = reader;
-		eventbus.addListener(this, 'mapCompleted', 'addMapToTOC');
+		eventbus.addListener(this, 'addMapToTOC', 'mapCompleted');
 	},
 	
 	/**
-	 * Method: addTOC
-	 * Adds TOC to map
+	 * Method: addMapToTOC
+	 * Adds map to TOC
 	 * 
 	 * @param XVM.Loader.Reader
 	 * @param XVM.Map
