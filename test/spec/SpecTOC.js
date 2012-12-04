@@ -71,13 +71,14 @@ describe("TOC Control tests:", function() {
 	fakemap.addControls([]);
 	
 	var fakereader = new XVM.Loader.Reader();
+	XVM.Reader = fakereader;
 	var faketoc = null;
 	
 	beforeEach(function(){
 		loadFixtures("TOC.html");
 		spyOn(fakereader, 'readFromFile');
 		spyOn(fakeeventbus, 'addListener');
-		faketoc = new TOC.Control(fakeeventbus, fakereader);
+		faketoc = new TOC.Control();
 		faketoc.addMapToTOC(fakemap);
 		faketoc.createTabs();
 	});

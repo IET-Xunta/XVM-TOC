@@ -15,11 +15,6 @@ TOC.Control = TOC.Class.extend({
 	map : null,
 	
 	/**
-	 * Property: OpenLayers.Map
-	 */	
-	reader: null, 
-	
-	/**
 	 * Property: path to defaults config parameters
 	 */
 	DEFAULTCONFIG : 'toc/config/toc.options.yaml',
@@ -39,21 +34,19 @@ TOC.Control = TOC.Class.extend({
 	 * 
 	 * @param 
 	 */
-	initialize : function(eventbus, reader) {
-		this.reader = reader;
-		eventbus.addListener(this, 'addMapToTOC', 'mapCompleted');
+	initialize : function() {
+		XVM.EventBus.addListener(this, 'addMapToTOC', 'mapCompleted');
 	},
 	
 	/**
 	 * Method: addMapToTOC
 	 * Adds map to TOC
 	 * 
-	 * @param XVM.Loader.Reader
 	 * @param XVM.Map
 	 */
 	addMapToTOC : function(map) {
 		this.map = map.OLMap;
-		this.reader.readFromFile(
+		XVM.Reader.readFromFile(
 				this.DEFAULTCONFIG,
 				this.createTOC,
 				this);		
