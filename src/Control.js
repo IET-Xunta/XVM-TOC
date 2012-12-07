@@ -67,7 +67,8 @@ TOC.Control = TOC.Class.extend({
 			$(this.div + " ul").append($('<li>').append($('<a href=#' + tabs[i] + '>').text(tabs[i])));
 			$(this.div).append($('<div id="' + tabs[i] + '">'));
 		}
-		$(this.div).tabs();
+		$(this.div).dialog()
+			.tabs();
 	},
 	
 	/**

@@ -79,14 +79,13 @@ describe("TOC Control tests:", function() {
 		loadFixtures("TOC.html");
 		spyOn(fakereader, 'readFromFile');
 		spyOn(fakeeventbus, 'addListener');
-		
-		faketoc.addMapToTOC(fakemap);
-		faketoc.createTabs();
 	});
 	
 	XVM.Reader = fakereader;
 	
-	it("Add map to TOC reads config", function(){		
+	it("Add map to TOC reads config", function(){
+		faketoc.addMapToTOC(fakemap);
+		faketoc.createTabs();
 		expect(faketoc.map).toEqual(fakemap.OLMap);
 		expect(fakereader.readFromFile).toHaveBeenCalled();
 	});
@@ -110,7 +109,6 @@ describe("TOC Control tests:", function() {
 	});
 	
 	it("Change setbaselayer sets new baseLayer into map", function() {
-		faketoc.addLayersToTOC();
 		$('#input_fakedata').change();
 		expect(faketoc.map.baseLayer).toEqual(fakeLayer);
 		$('#input_anotherfakedata').change();
@@ -118,7 +116,6 @@ describe("TOC Control tests:", function() {
 	});
 	
 	it("Change visibility sets this into map", function() {
-		faketoc.addLayersToTOC();
 		$('#input_fakeoverlay1').attr('checked', false).change();
 		expect(faketoc.map.getLayersByName('fakeoverlay1')[0].visibility).toBeFalsy();
 		$('#input_fakeoverlay1').attr('checked', true).change();
