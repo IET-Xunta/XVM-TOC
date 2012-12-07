@@ -94,15 +94,14 @@ TOC.Panel = TOC.Class.extend({
 				this.setOpacity);
 
 		//add legend control
-		/*var legend = $('<div>');
-		legend.attr("id", "id_legend_" + this.layer.id;);
-		legend.css({
+		var legend = $('<div>')		
+			.attr("id", "id_legend_" + this.layer.name)
+			.css({
 			'margin' : '5px'
 		});
-		div.append(legend);
-		this.legendControl.initialize(legendid, {width:15, heigth:15});
-		this.legendControl.getLegendGraphic(this.layer);*/
-
+		this.div.append(legend);
+		this.legendControl = new TOC.Legend("id_legend_" + this.layer.name);
+		this.legendControl.getLegendGraphic(this.layer);
 	},
 
 	/*

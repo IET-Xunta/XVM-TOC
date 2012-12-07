@@ -21,12 +21,12 @@ TOC.Class.prototype.initialize = function() {
 
 TOC.Class.extend = function(def) {
 	var classDef = function() {
-		if(arguments[0] !== XVM.Class) {
+		if(arguments[0] !== TOC.Class) {
 			this.initialize.apply(this, arguments);
 		}
 	};
 
-	var proto = new this(XVM.Class);
+	var proto = new this(TOC.Class);
 	var superClass = this.prototype;
 
 	for(var n in def) {

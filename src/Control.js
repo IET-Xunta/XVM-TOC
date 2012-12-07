@@ -167,9 +167,14 @@ TOC.Control = TOC.Class.extend({
 
 			/*var panel = new TOC.Panel();
 			panel.initialize(null);
-			$(image).on("click", null, context, function(evt) {
-				panel.launch(evt);
-			});*/
+			$(image).on(
+					"click", 
+					null, 
+					context, 
+					function(evt) {
+						panel.launch(evt);
+					}
+			);*/
 
 			// create li
 			var line = $('<li>');

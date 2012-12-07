@@ -16,8 +16,8 @@ describe('TOC Panel tests: ', function(){
 	
 	// add layers
 	var fakeLayer = new OpenLayers.Layer.WMS( "fakeData",
-            "http://vmap0.tiles.osgeo.org/wms/vmap0",
-            {layers: 'basic'},
+            "http://geoportalcredia.org:8080/geoserver/credia/wms",
+            {layers: 'credia:Red Vial de Honduras'},
             {opacity : 0.5});
 	fakeLayer.layer_position = 1;
 	fakeLayer.group_name = 'capa_base';
@@ -60,12 +60,7 @@ describe('TOC Panel tests: ', function(){
 	it('Sets opacity test', function(){
 		var fakeui = {value : 0.8}
 		fakePanel.setOpacity(fakeevt, fakeui);
-		console.log(fakeLayer);
 		expect(fakeLayer.opacity).toEqual(fakeui.value);
 	});
 	
-	// TODO
-	it('Dialog closes destroy it', function(){
-		fakePanel.div.dialog('close');
-	});
 });
