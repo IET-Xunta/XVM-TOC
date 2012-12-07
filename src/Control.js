@@ -165,7 +165,7 @@ TOC.Control = TOC.Class.extend({
 				}
 			}).attr("title", "Lenda/Transparencia"); // TODO Localice
 
-			/*var panel = new TOC.Panel();
+			var panel = new TOC.Panel();
 			panel.initialize(null);
 			$(image).on(
 					"click", 
@@ -174,7 +174,7 @@ TOC.Control = TOC.Class.extend({
 					function(evt) {
 						panel.launch(evt);
 					}
-			);*/
+			);
 
 			// create li
 			var line = $('<li>');
