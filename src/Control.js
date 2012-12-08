@@ -351,6 +351,9 @@ TOC.Control = TOC.Class.extend({
 				.append(labelSpan);				
 
 			$("#" + group).append(line);
+			
+			if (checked)
+				this.setVisibleLayer(layer);
 		}
 	}
 });
