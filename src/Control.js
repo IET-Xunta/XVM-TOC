@@ -77,6 +77,7 @@ TOC.Control = TOC.Class.extend({
 	createTOC : function(response, context) {
 		var this_ = context;
 		this_.createTabs();
+		this_.createVisibleTab();
 		this_.addLayersToTOC();
 	},
 	
@@ -101,7 +102,8 @@ TOC.Control = TOC.Class.extend({
 	 * Method: addLayers Add layers to TOC. Defaults accordion, if type is tree
 	 * creates a Tree structure
 	 */
-	addLayersToTOC :  function() {		
+	addLayersToTOC :  function() {
+	
 		var layers = this.map.layers;
 		var groups = [];
         for(var i = 0; i < layers.length; i++) {
@@ -116,7 +118,6 @@ TOC.Control = TOC.Class.extend({
             this.addLayerToGroup(group, layer);
         }
         $('#layers').accordion();
-		this.createVisibleTab();
 	},
 	
 	/**
@@ -351,7 +352,7 @@ TOC.Control = TOC.Class.extend({
 				.append(labelSpan);				
 
 			$("#" + group).append(line);
-			
+
 			if (checked)
 				this.setVisibleLayer(layer);
 		}
