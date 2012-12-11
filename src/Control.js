@@ -8,32 +8,37 @@
  */
 
 TOC.Control = TOC.Class.extend({
-	
+
 	/**
 	 * Property: OpenLayers.Map
 	 */
 	map : null,
-	
+
 	/**
 	 * Property: path to defaults config parameters
 	 */
 	DEFAULTCONFIG : 'toc/config/',
-	
+
 	/**
 	 * 
 	 */
 	DEFAULTIMAGES : 'toc/images/',
-	
+
 	/**
 	 * Property: default tabs
 	 */
 	DEFAULTTABS : {'tabs': ['layers', 'visibles', 'searches']},
-	
+
 	/**
 	 * Property: defaults div id to create TOC
 	 */
 	div : '#toc',
-	
+
+	/**
+	 * Type of the toc. Supported ones are 'accordion' and 'tree'. Defaults to 'accordion' if an unsupported type is provided.
+	 */
+	DEFAULTTYPE : 'accordion',
+
 	/**
 	 * Method: initializes TOC into XVM.Map
 	 * 
@@ -75,6 +80,12 @@ TOC.Control = TOC.Class.extend({
 	 * Method: creates TOC
 	 */
 	createTOC : function(response, context) {
+		if (typeof response.type !== 'undefined') {
+			context.DEFAULTTYPE = response.type;
+		}
+		if (typeof response.tabs !== 'undefined') {
+			context.DEFAULTTABS.tabs = response.tabs;
+		}
 		var this_ = context;
 		this_.createTabs();
 		this_.createVisibleTab();
@@ -92,7 +103,7 @@ TOC.Control = TOC.Class.extend({
 		var visibles_ol = $('<div>')
 			.attr('id', 'visible_overlay_layer')
 			.append($('<span class="visible_ov_layer">').text('Capas'));
-		$('#visibles').css('list-style' ,'none')
+		$('#' + this.DEFAULTTABS.tabs[1]).css('list-style' ,'none')
 				.append(visible_bl)
 				.append(visibles_ol);
 		
@@ -106,18 +117,39 @@ TOC.Control = TOC.Class.extend({
 	
 		var layers = this.map.layers;
 		var groups = [];
-        for(var i = 0; i < layers.length; i++) {
-            var layer = layers[i];
-            var group = layer.group_name;
+		if (this.DEFAULTTYPE == 'tree') {
+			$('#' + this.DEFAULTTABS.tabs[0]).append($('<div id="tree_' + this.DEFAULTTABS.tabs[0] + '">'));
+			$("#tree_" + this.DEFAULTTABS.tabs[0]).dynatree({
+			      onActivate: function(node) {
+			        // A DynaTreeNode object is passed to the activation handler
+			        // Note: we also get this event, if persistence is on, and the page is reloaded.
+			        alert("You activated " + node.data.title);
+			      },
+			      children: [
+			        {title: "Item 1"},
+			        {title: "Folder 2", isFolder: true, key: "folder2",
+			          children: [
+			            {title: "Sub-item 2.1"},
+			            {title: "Sub-item 2.2"}
+			          ]
+			        },
+			        {title: "Item 3"}
+			      ]
+			    });
+		} else {
+	        for(var i = 0; i < layers.length; i++) {
+	            var layer = layers[i];
+	            var group = layer.group_name;
 
-            if ($.inArray(group, groups) == -1) {
-            	groups.push(group);
-            	$('#layers').append($('<h3>').text(group));
-            	$('#layers').append($('<div id="' + group + '">'));
-            }
-            this.addLayerToGroup(group, layer);
-        }
-        $('#layers').accordion();
+	            if ($.inArray(group, groups) == -1) {
+		            groups.push(group);
+		            $('#' + this.DEFAULTTABS.tabs[0]).append($('<h3>').text(group));
+		            $('#' + this.DEFAULTTABS.tabs[0]).append($('<div id="' + group + '">'));
+	            }
+	            this.addLayerToGroup(group, layer);
+	        }
+	        $('#' + this.DEFAULTTABS.tabs[0]).accordion();
+		}
 	},
 	
 	/**
