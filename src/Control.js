@@ -120,6 +120,11 @@ TOC.Control = TOC.Class.extend({
 		if (this.DEFAULTTYPE == 'tree') {
 			$('#' + this.DEFAULTTABS.tabs[0]).append($('<div id="tree_' + this.DEFAULTTABS.tabs[0] + '">'));
 			$("#tree_" + this.DEFAULTTABS.tabs[0]).dynatree({
+				  classNames: {
+					container: 'dynatree-container-external',
+			        focused: 'dynatree-focused-external',
+					expander: 'dynatree-expander-external'
+				  },
 			      onActivate: function(node) {
 			        // A DynaTreeNode object is passed to the activation handler
 			        // Note: we also get this event, if persistence is on, and the page is reloaded.
