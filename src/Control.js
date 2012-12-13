@@ -39,6 +39,33 @@ TOC.Control = TOC.Class.extend({
 	 */
 	DEFAULTTYPE : 'accordion',
 
+    /**
+     * Property: layerStates
+     * {Array(Object)} Basically a copy of the "state" of the map's layers
+     *     the last time the control was drawn. We have this in order to avoid
+     *     unnecessarily redrawing the control.
+     */
+    layerStates: null,
+
+    /**
+     * APIProperty: ascending
+     * {Boolean} If we want the layers to appear in the tree in the same order
+     * 		as they are in the map, or in reverse.
+     */
+    ascending: true,
+
+    /**
+     * Property: baseLayersTree
+     * {DynaTree}
+     */
+    baseLayersTree: null,
+
+    /**
+     * Property: overlaysTree
+     * {DynaTree}
+     */
+    overlaysTree: null,
+
 	/**
 	 * Method: initializes TOC into XVM.Map
 	 * 
@@ -47,7 +74,7 @@ TOC.Control = TOC.Class.extend({
 	initialize : function() {
 		XVM.EventBus.addListener(this, 'addMapToTOC', 'mapCompleted');
 	},
-	
+
 	/**
 	 * Method: addMapToTOC
 	 * Adds map to TOC
@@ -61,7 +88,7 @@ TOC.Control = TOC.Class.extend({
 				this.createTOC,
 				this);		
 	},
-	
+
 	/**
 	 * Method: create tabs
 	 */
@@ -75,7 +102,7 @@ TOC.Control = TOC.Class.extend({
 		$(this.div).dialog()
 			.tabs();
 	},
-	
+
 	/**
 	 * Method: creates TOC
 	 */
@@ -91,7 +118,7 @@ TOC.Control = TOC.Class.extend({
 		this_.createVisibleTab();
 		this_.addLayersToTOC();
 	},
-	
+
 	/**
 	 * 
 	 */
@@ -108,7 +135,221 @@ TOC.Control = TOC.Class.extend({
 				.append(visibles_ol);
 		
 	},
-	
+
+    /**
+     * Method: checkRedraw
+     * Checks if the layer state has changed since the last redraw() call.
+     *
+     * Returns:
+     * {Boolean} The layer state changed since the last redraw() call.
+     */
+    checkRedraw: function() {
+        var redraw = false;
+        if ( !this.layerStates.length ||
+             (this.map.layers.length != this.layerStates.length) ) {
+            redraw = true;
+        } else {
+            for (var i=0, len=this.layerStates.length; i<len; i++) {
+                var layerState = this.layerStates[i];
+                var layer = this.map.layers[i];
+                if ( (layerState.name != layer.name) ||
+                     (layerState.inRange != layer.inRange) ||
+                     (layerState.id != layer.id) ||
+                     ((layerState.visibility != layer.getVisibility()) &&
+                             (layer.isBaseLayer ? layer.getVisibility() : true)) ) {
+                    redraw = true;
+                    break;
+                }
+            }
+        }
+        return redraw;
+    },
+
+    /**
+     * Method: redraw
+     * Goes through and takes the current state of the Map and rebuilds the
+     *     control to display that state. Groups base layers into a
+     *     radio-button group and lists each data layer with a checkbox.
+     *
+     * Returns:
+     * {DOMElement} A reference to the DIV DOMElement containing the control
+     */
+    redraw: function() {
+        //if the state hasn't changed since last redraw, no need
+        // to do anything. Just return the existing div.
+        if (!this.checkRedraw()) {
+            return this.div;
+        }
+
+        // Save state -- for checking layer if the map state changed.
+        // We save this before redrawing, because in the process of redrawing
+        // we will trigger more visibility changes, and we want to not redraw
+        // and enter an infinite loop.
+        var len = this.map.layers.length;
+        this.layerStates = new Array(len);
+        for (var i=0; i <len; i++) {
+            var layer = this.map.layers[i];
+            this.layerStates[i] = {
+                'name': layer.name,
+                'visibility': layer.isBaseLayer ? layer == this.map.baseLayer : layer.getVisibility(),
+                'inRange': layer.inRange,
+                'id': layer.id
+            };
+        }
+
+        var layers = this.map.layers;
+        if (!this.ascending) { layers.reverse(); }
+
+        var baselayers = [], overlays = [];
+        for (var i=0, len=layers.length; i<len; i++) {
+            var layer = layers[i];
+            if (layer.isBaseLayer) {
+                baselayers.push(layer);
+            } else {
+                overlays.push(layer);
+            }
+        }
+
+        $(this.baseLayersTree).dynatree('destroy');
+        this.baseLayersTree = $(this.baseLayersTree).dynatree({
+		  classNames: {
+				container: 'dynatree-container-external',
+		        focused: 'dynatree-focused-external',
+				expander: 'dynatree-expander-external',
+				checkbox: 'dynatree-radio'
+		  },
+          checkbox: true,
+          selectMode: 1,
+          clickFolderMode: 2,
+          parent: this,
+          children: this.generateBaseLayersTree(baselayers),
+          onSelect: function(select, node) {
+              node.tree.options.parent.updateBaseLayer(node.data._layer);
+          },
+          cookieId: "dynatree-external-Cb1",
+          idPrefix: "dynatree-external-Cb1-",
+          debugLevel: 0
+        });
+
+        $(this.overlaysTree).dynatree('destroy');
+        this.overlaysTree = $(this.overlaysTree).dynatree({
+		  classNames: {
+				container: 'dynatree-container-external',
+		        focused: 'dynatree-focused-external',
+				expander: 'dynatree-expander-external'
+		  },
+          checkbox: true,
+          selectMode: 3,
+          clickFolderMode: 2,
+          parent: this,
+          children: this.generateOverlaysTree(overlays),
+          onSelect: function(select, node) {
+              updateNodeLayer = function(node) {
+                  if(node.hasChildren() === false) {
+                      node.tree.options.parent.updateLayerVisibility(node.data._layer, node.isSelected());
+                  }
+              };
+              node.visit(updateNodeLayer, true);
+          },
+          cookieId: "dynatree-external-Cb2",
+          idPrefix: "dynatree-external-Cb2-",
+          debugLevel: 0
+        });
+
+        return this.div;
+    },
+
+    generateTreeFromLayers : function(layers, root, base_id, selectableFolders) {
+
+        for(var i=0, len=layers.length; i<len; i++) {
+            var layer = layers[i];
+            var baseId = base_id + '_';
+            var groups;
+            if (typeof layer.group_name === 'string') {
+                groups = layer.group_name.split('/');
+            } else {
+                groups = [];
+            }
+            var currentNode = root;
+            for (var n=0, leng=groups.length; n<leng; n++) {
+                var group = groups[n];
+                if (group == '') {
+                    continue;
+                }
+                baseId += group + '_';
+                var children = currentNode.children;
+                var found = false;
+                for (var m=0, lengt=children.length; m<lengt; m++) {
+                    if (children[m].title == group) {
+                        found = true;
+                        currentNode = children[m];
+                        break;
+                    }
+                }
+                if (!found) {
+                    var newNode = {title: group, key: baseId,  hideCheckbox: !selectableFolders, expand: true, isFolder: true, icon: false, children: []};
+                    currentNode.children.push(newNode);
+                    currentNode = newNode;
+                }
+            }
+            currentNode.children.push({title: layer.name, key: baseId + layer.name, _layer: layer.id, icon: false, select: layer.isBaseLayer ? layer == this.map.baseLayer : layer.getVisibility()});
+        }
+
+    },
+
+    generateOverlaysTree : function(layers) {
+
+        var baseId = this.id + '_overlays';
+
+        treeChildren = [
+                      {title: OpenLayers.i18n('Overlays'), key: baseId,  expand: true, isFolder: true, icon: false,
+                        children: []
+                      }
+                    ];
+
+        this.generateTreeFromLayers(layers, treeChildren[0], baseId, true);
+
+        return treeChildren;
+    },
+
+    generateBaseLayersTree : function(layers) {
+
+        var baseId = this.id + '_baselayers';
+
+        var treeChildren =[
+                       {title: OpenLayers.i18n("Base Layer"), key: baseId, hideCheckbox: true, unselectable: true, expand: true, isFolder: true, icon: false,
+                         children: []
+                       }
+                     ];
+
+        this.generateTreeFromLayers(layers, treeChildren[0], baseId, false);
+
+        return treeChildren;
+    },
+
+    updateBaseLayer : function(layerid) {
+        var layers = this.map.layers;
+        for (var i=0, len = layers.length; i < len; i++) {
+            var layer = layers[i];
+            if (layer.isBaseLayer) {
+                this.layerStates[i].visibility = (layer.id == layerid);
+            }
+        }
+        this.map.setBaseLayer(this.map.getLayer(layerid));
+    },
+
+    updateLayerVisibility : function(layerid, select) {
+        var layers = this.map.layers;
+        for (var i=0, len = layers.length; i < len; i++) {
+            var layer = layers[i];
+            if (layer.id == layerid) {
+                this.layerStates[i].visibility = select;
+                break;
+            }
+        }
+        this.map.getLayer(layerid).setVisibility(select);
+    },
+
 	/**
 	 * Method: addLayers Add layers to TOC. Defaults accordion, if type is tree
 	 * creates a Tree structure
@@ -118,29 +359,88 @@ TOC.Control = TOC.Class.extend({
 		var layers = this.map.layers;
 		var groups = [];
 		if (this.DEFAULTTYPE == 'tree') {
-			$('#' + this.DEFAULTTABS.tabs[0]).append($('<div id="tree_' + this.DEFAULTTABS.tabs[0] + '">'));
-			$("#tree_" + this.DEFAULTTABS.tabs[0]).dynatree({
-				  classNames: {
+	        this.map.events.on({
+	            addlayer: this.redraw,
+	            removelayer: this.redraw,
+	            changebaselayer: this.redraw,
+	            changelayer: this.redraw,
+	            scope: this
+	        });
+
+			$('#' + this.DEFAULTTABS.tabs[0]).append($('<div id="tree1_' + this.DEFAULTTABS.tabs[0] + '">'));
+			$('#' + this.DEFAULTTABS.tabs[0]).append($('<div id="tree2_' + this.DEFAULTTABS.tabs[0] + '">'));
+
+	        // Save state -- for checking layer if the map state changed.
+	        // We save this before redrawing, because in the process of redrawing
+	        // we will trigger more visibility changes, and we want to not redraw
+	        // and enter an infinite loop.
+	        var len = this.map.layers.length;
+	        this.layerStates = new Array(len);
+	        for (var i=0; i <len; i++) {
+	            var layer = this.map.layers[i];
+	            this.layerStates[i] = {
+	                'name': layer.name,
+	                'visibility': layer.isBaseLayer ? layer == this.map.baseLayer : layer.getVisibility(),
+	                'inRange': layer.inRange,
+	                'id': layer.id
+	            };
+	        }
+
+	        if (!this.ascending) { layers.reverse(); }
+	        var baselayers = [], overlays = [];
+	        for (var i=0, len=layers.length; i<len; i++) {
+	            var layer = layers[i];
+	            if (layer.isBaseLayer) {
+	                baselayers.push(layer);
+	            } else {
+	                overlays.push(layer);
+	            }
+	        }
+
+	        this.baseLayersTree = $('#tree1_' + this.DEFAULTTABS.tabs[0]).dynatree({
+			  classNames: {
+					container: 'dynatree-container-external',
+			        focused: 'dynatree-focused-external',
+					expander: 'dynatree-expander-external',
+					checkbox: 'dynatree-radio'
+			  },
+	          checkbox: true,
+	          // Override class name for checkbox icon:
+	          selectMode: 1,
+	          clickFolderMode: 2,
+	          parent: this,
+	          children: this.generateBaseLayersTree(baselayers),
+	          onSelect: function(select, node) {
+	              node.tree.options.parent.updateBaseLayer(node.data._layer);
+	          },
+	          cookieId: "dynatree-external-Cb1",
+	          idPrefix: "dynatree-external-Cb1-",
+	          debugLevel: 0
+	        });
+
+	        this.overlaysTree = $('#tree2_' + this.DEFAULTTABS.tabs[0]).dynatree({
+			  classNames: {
 					container: 'dynatree-container-external',
 			        focused: 'dynatree-focused-external',
 					expander: 'dynatree-expander-external'
-				  },
-			      onActivate: function(node) {
-			        // A DynaTreeNode object is passed to the activation handler
-			        // Note: we also get this event, if persistence is on, and the page is reloaded.
-			        alert("You activated " + node.data.title);
-			      },
-			      children: [
-			        {title: "Item 1"},
-			        {title: "Folder 2", isFolder: true, key: "folder2",
-			          children: [
-			            {title: "Sub-item 2.1"},
-			            {title: "Sub-item 2.2"}
-			          ]
-			        },
-			        {title: "Item 3"}
-			      ]
-			    });
+			  },
+	          checkbox: true,
+	          selectMode: 3,
+	          clickFolderMode: 2,
+	          parent: this,
+	          children: this.generateOverlaysTree(overlays),
+	          onSelect: function(select, node) {
+	              updateNodeLayer = function(node) {
+	                  if(node.hasChildren() === false) {
+	                      node.tree.options.parent.updateLayerVisibility(node.data._layer, node.isSelected());
+	                  }
+	              };
+	              node.visit(updateNodeLayer, true);
+	          },
+	          cookieId: "dynatree-external-Cb2",
+	          idPrefix: "dynatree-external-Cb2-",
+	          debugLevel: 0
+	        });
 		} else {
 	        for(var i = 0; i < layers.length; i++) {
 	            var layer = layers[i];
