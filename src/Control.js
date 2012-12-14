@@ -198,63 +198,90 @@ TOC.Control = TOC.Class.extend({
         }
 
         var layers = this.map.layers;
-        if (!this.ascending) { layers.reverse(); }
+        
+    	if (this.DEFAULTTYPE == 'accordion') {
+    		var groups = [];
+	        for(var i = 0; i < this.map.layers.length; i++) {
+	            var layer = this.map.layers[i];
+	            var group = layer.group_name;
+	            if ($.inArray(group, groups) == -1) {
+		            groups.push(group);
+	            }
+	        }
+	        for(var i = 0; i < groups.length; i++) {
+	        	if ('#' + groups[i] != null) {
+	        		$('#' + groups[i]).empty();
+	        	} else {
+		            $('#' + this.DEFAULTTABS.tabs[0]).append($('<h3>').text(groups[i]));
+		            $('#' + this.DEFAULTTABS.tabs[0]).append($('<div id="' + groups[i] + '">'));
+	        	}
+	        }
 
-        var baselayers = [], overlays = [];
-        for (var i=0, len=layers.length; i<len; i++) {
-            var layer = layers[i];
-            if (layer.isBaseLayer) {
-                baselayers.push(layer);
-            } else {
-                overlays.push(layer);
-            }
-        }
-
-        $(this.baseLayersTree).dynatree('destroy');
-        this.baseLayersTree = $(this.baseLayersTree).dynatree({
-		  classNames: {
-				container: 'dynatree-container-external',
-		        focused: 'dynatree-focused-external',
-				expander: 'dynatree-expander-external',
-				checkbox: 'dynatree-radio'
-		  },
-          checkbox: true,
-          selectMode: 1,
-          clickFolderMode: 2,
-          parent: this,
-          children: this.generateBaseLayersTree(baselayers),
-          onSelect: function(select, node) {
-              node.tree.options.parent.updateBaseLayer(node.data._layer);
-          },
-          cookieId: "dynatree-external-Cb1",
-          idPrefix: "dynatree-external-Cb1-",
-          debugLevel: 0
-        });
-
-        $(this.overlaysTree).dynatree('destroy');
-        this.overlaysTree = $(this.overlaysTree).dynatree({
-		  classNames: {
-				container: 'dynatree-container-external',
-		        focused: 'dynatree-focused-external',
-				expander: 'dynatree-expander-external'
-		  },
-          checkbox: true,
-          selectMode: 3,
-          clickFolderMode: 2,
-          parent: this,
-          children: this.generateOverlaysTree(overlays),
-          onSelect: function(select, node) {
-              updateNodeLayer = function(node) {
-                  if(node.hasChildren() === false) {
-                      node.tree.options.parent.updateLayerVisibility(node.data._layer, node.isSelected());
-                  }
-              };
-              node.visit(updateNodeLayer, true);
-          },
-          cookieId: "dynatree-external-Cb2",
-          idPrefix: "dynatree-external-Cb2-",
-          debugLevel: 0
-        });
+    		for(var i = 0; i < this.map.layers.length; i++) {
+	            var layer = this.map.layers[i];
+	            var group = layer.group_name;
+	            this.addLayerToGroup(group, layer);
+	        }
+			return;
+    	} else if (this.DEFAULTTYPE == 'tree') {
+	        if (!this.ascending) { layers.reverse(); }
+	
+	        var baselayers = [], overlays = [];
+	        for (var i=0, len=layers.length; i<len; i++) {
+	            var layer = layers[i];
+	            if (layer.isBaseLayer) {
+	                baselayers.push(layer);
+	            } else {
+	                overlays.push(layer);
+	            }
+	        }
+	
+	        $(this.baseLayersTree).dynatree('destroy');
+	        this.baseLayersTree = $(this.baseLayersTree).dynatree({
+			  classNames: {
+					container: 'dynatree-container-external',
+			        focused: 'dynatree-focused-external',
+					expander: 'dynatree-expander-external',
+					checkbox: 'dynatree-radio'
+			  },
+	          checkbox: true,
+	          selectMode: 1,
+	          clickFolderMode: 2,
+	          parent: this,
+	          children: this.generateBaseLayersTree(baselayers),
+	          onSelect: function(select, node) {
+	              node.tree.options.parent.updateBaseLayer(node.data._layer);
+	          },
+	          cookieId: "dynatree-external-Cb1",
+	          idPrefix: "dynatree-external-Cb1-",
+	          debugLevel: 0
+	        });
+	
+	        $(this.overlaysTree).dynatree('destroy');
+	        this.overlaysTree = $(this.overlaysTree).dynatree({
+			  classNames: {
+					container: 'dynatree-container-external',
+			        focused: 'dynatree-focused-external',
+					expander: 'dynatree-expander-external'
+			  },
+	          checkbox: true,
+	          selectMode: 3,
+	          clickFolderMode: 2,
+	          parent: this,
+	          children: this.generateOverlaysTree(overlays),
+	          onSelect: function(select, node) {
+	              updateNodeLayer = function(node) {
+	                  if(node.hasChildren() === false) {
+	                      node.tree.options.parent.updateLayerVisibility(node.data._layer, node.isSelected());
+	                  }
+	              };
+	              node.visit(updateNodeLayer, true);
+	          },
+	          cookieId: "dynatree-external-Cb2",
+	          idPrefix: "dynatree-external-Cb2-",
+	          debugLevel: 0
+	        });
+    	}
 
         return this.div;
     },
@@ -358,33 +385,33 @@ TOC.Control = TOC.Class.extend({
 	
 		var layers = this.map.layers;
 		var groups = [];
+        // Save state -- for checking layer if the map state changed.
+        // We save this before redrawing, because in the process of redrawing
+        // we will trigger more visibility changes, and we want to not redraw
+        // and enter an infinite loop.
+        var len = this.map.layers.length;
+        this.layerStates = new Array(len);
+        for (var i=0; i <len; i++) {
+            var layer = this.map.layers[i];
+            this.layerStates[i] = {
+                'name': layer.name,
+                'visibility': layer.isBaseLayer ? layer == this.map.baseLayer : layer.getVisibility(),
+                'inRange': layer.inRange,
+                'id': layer.id
+            };
+        }
+        this.map.events.on({
+            addlayer: this.redraw,
+            removelayer: this.redraw,
+            changebaselayer: this.redraw,
+            changelayer: this.redraw,
+            scope: this
+        });
 		if (this.DEFAULTTYPE == 'tree') {
-	        this.map.events.on({
-	            addlayer: this.redraw,
-	            removelayer: this.redraw,
-	            changebaselayer: this.redraw,
-	            changelayer: this.redraw,
-	            scope: this
-	        });
 
 			$('#' + this.DEFAULTTABS.tabs[0]).append($('<div id="tree1_' + this.DEFAULTTABS.tabs[0] + '">'));
 			$('#' + this.DEFAULTTABS.tabs[0]).append($('<div id="tree2_' + this.DEFAULTTABS.tabs[0] + '">'));
 
-	        // Save state -- for checking layer if the map state changed.
-	        // We save this before redrawing, because in the process of redrawing
-	        // we will trigger more visibility changes, and we want to not redraw
-	        // and enter an infinite loop.
-	        var len = this.map.layers.length;
-	        this.layerStates = new Array(len);
-	        for (var i=0; i <len; i++) {
-	            var layer = this.map.layers[i];
-	            this.layerStates[i] = {
-	                'name': layer.name,
-	                'visibility': layer.isBaseLayer ? layer == this.map.baseLayer : layer.getVisibility(),
-	                'inRange': layer.inRange,
-	                'id': layer.id
-	            };
-	        }
 
 	        if (!this.ascending) { layers.reverse(); }
 	        var baselayers = [], overlays = [];
