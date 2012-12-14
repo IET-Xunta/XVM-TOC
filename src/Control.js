@@ -195,6 +195,7 @@ TOC.Control = TOC.Class.extend({
                 'inRange': layer.inRange,
                 'id': layer.id
             };
+            this.setVisibleLayer(layer);
         }
 
         var layers = this.map.layers;
@@ -251,6 +252,7 @@ TOC.Control = TOC.Class.extend({
 	          children: this.generateBaseLayersTree(baselayers),
 	          onSelect: function(select, node) {
 	              node.tree.options.parent.updateBaseLayer(node.data._layer);
+                  node.tree.options.parent.setVisibleLayer(node.tree.options.parent.map.getLayer(node.data._layer));
 	          },
 	          cookieId: "dynatree-external-Cb1",
 	          idPrefix: "dynatree-external-Cb1-",
@@ -273,6 +275,7 @@ TOC.Control = TOC.Class.extend({
 	              updateNodeLayer = function(node) {
 	                  if(node.hasChildren() === false) {
 	                      node.tree.options.parent.updateLayerVisibility(node.data._layer, node.isSelected());
+	                      node.tree.options.parent.setVisibleLayer(node.tree.options.parent.map.getLayer(node.data._layer));
 	                  }
 	              };
 	              node.visit(updateNodeLayer, true);
@@ -399,6 +402,7 @@ TOC.Control = TOC.Class.extend({
                 'inRange': layer.inRange,
                 'id': layer.id
             };
+            this.setVisibleLayer(layer);
         }
         this.map.events.on({
             addlayer: this.redraw,
@@ -439,6 +443,7 @@ TOC.Control = TOC.Class.extend({
 	          children: this.generateBaseLayersTree(baselayers),
 	          onSelect: function(select, node) {
 	              node.tree.options.parent.updateBaseLayer(node.data._layer);
+                  node.tree.options.parent.setVisibleLayer(node.tree.options.parent.map.getLayer(node.data._layer));
 	          },
 	          cookieId: "dynatree-external-Cb1",
 	          idPrefix: "dynatree-external-Cb1-",
@@ -460,8 +465,10 @@ TOC.Control = TOC.Class.extend({
 	              updateNodeLayer = function(node) {
 	                  if(node.hasChildren() === false) {
 	                      node.tree.options.parent.updateLayerVisibility(node.data._layer, node.isSelected());
+	                      node.tree.options.parent.setVisibleLayer(node.tree.options.parent.map.getLayer(node.data._layer));
 	                  }
 	              };
+	              
 	              node.visit(updateNodeLayer, true);
 	          },
 	          cookieId: "dynatree-external-Cb2",
@@ -492,7 +499,7 @@ TOC.Control = TOC.Class.extend({
 		var layerName = TOC.Util.replaceAll(layer.id,'.','_');
 		var layerLine = $('#' + layerName);
 
-		if(layerLine.length == 0) {
+		if((layerLine.length == 0) && (layer.getVisibility())) {
 			var context = {
 				'layer' : layer,
 				'TOC' : this
@@ -607,9 +614,11 @@ TOC.Control = TOC.Class.extend({
 				);
 			}
 		} else {
-			/*var nlayers = $('#capas_visibles').text().extractInteger() - 1;
-			$('#capas_visibles').text('Visibles (' + nlayers.toString() +')');*/
-			$('#' + layerName).remove();
+			if (! layer.getVisibility()) {
+				/*var nlayers = $('#capas_visibles').text().extractInteger() - 1;
+				$('#capas_visibles').text('Visibles (' + nlayers.toString() +')');*/
+				$('#' + layerName).remove();
+			}
 		}
 	},
 	
@@ -667,10 +676,11 @@ TOC.Control = TOC.Class.extend({
 					function(evt) {
 						var this_ = evt.data.toc;
 						if(evt.data.inputElem.attr('type') == "radio"){
+							this_.updateBaseLayer(layer.id);
 							evt.data.layer.map.setBaseLayer(evt.data.layer);
-						}						
-						else {
+						} else {
 							var checked = (evt.data.inputElem.attr('checked') === 'checked') ? true : false;
+							this_.updateLayerVisibility(layer.id, checked);
 							evt.data.layer.setVisibility(checked);
 						}
 						this_.setVisibleLayer(layer);
@@ -716,9 +726,6 @@ TOC.Control = TOC.Class.extend({
 				.append(labelSpan);				
 
 			$("#" + group).append(line);
-
-			if (checked)
-				this.setVisibleLayer(layer);
 		}
 	}
 });
