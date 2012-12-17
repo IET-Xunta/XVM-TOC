@@ -52,7 +52,7 @@ TOC.Control = TOC.Class.extend({
      * {Boolean} If we want the layers to appear in the tree in the same order
      * 		as they are in the map, or in reverse.
      */
-    ascending: true,
+    reverse: false,
 
     /**
      * Property: baseLayersTree
@@ -198,7 +198,7 @@ TOC.Control = TOC.Class.extend({
             this.setVisibleLayer(layer);
         }
 
-        var layers = this.map.layers;
+        var layers = this.map.layers.slice();
         
     	if (this.DEFAULTTYPE == 'accordion') {
     		var groups = [];
@@ -225,7 +225,7 @@ TOC.Control = TOC.Class.extend({
 	        }
 			return;
     	} else if (this.DEFAULTTYPE == 'tree') {
-	        if (!this.ascending) { layers.reverse(); }
+	        if (!this.reverse) { layers.reverse(); }
 	
 	        var baselayers = [], overlays = [];
 	        for (var i=0, len=layers.length; i<len; i++) {
@@ -386,7 +386,7 @@ TOC.Control = TOC.Class.extend({
 	 */
 	addLayersToTOC :  function() {
 	
-		var layers = this.map.layers;
+		var layers = this.map.layers.slice();
 		var groups = [];
         // Save state -- for checking layer if the map state changed.
         // We save this before redrawing, because in the process of redrawing
@@ -417,7 +417,7 @@ TOC.Control = TOC.Class.extend({
 			$('#' + this.DEFAULTTABS.tabs[0]).append($('<div id="tree2_' + this.DEFAULTTABS.tabs[0] + '">'));
 
 
-	        if (!this.ascending) { layers.reverse(); }
+	        if (!this.reverse) { layers.reverse(); }
 	        var baselayers = [], overlays = [];
 	        for (var i=0, len=layers.length; i<len; i++) {
 	            var layer = layers[i];
