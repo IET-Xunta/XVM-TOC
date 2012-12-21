@@ -27,7 +27,7 @@ TOC.Control = TOC.Class.extend({
 	/**
 	 * Property: default tabs
 	 */
-	DEFAULTTABS : {'tabs': ['layers', 'visibles', 'searches']},
+	tabs : {'tabs': ['layers', 'visibles', 'searches']},
 
 	/**
 	 * Property: defaults div id to create TOC
@@ -37,7 +37,7 @@ TOC.Control = TOC.Class.extend({
 	/**
 	 * Type of the toc. Supported ones are 'accordion' and 'tree'. Defaults to 'accordion' if an unsupported type is provided.
 	 */
-	DEFAULTTYPE : 'accordion',
+	tocType : 'accordion',
 
     /**
      * Property: layerStates
@@ -53,6 +53,13 @@ TOC.Control = TOC.Class.extend({
      * 		as they are in the map, or in reverse.
      */
     reverse: false,
+    
+    /** 
+     * Property: firstBaseLayers
+     * {boolean} Set to true it will display the base layers tree above the overlayers
+     * one. False is obviously the opposite.
+     */
+    firstBaseLayers: false,
 
     /**
      * Property: baseLayersTree
@@ -93,7 +100,7 @@ TOC.Control = TOC.Class.extend({
 	 * Method: create tabs
 	 */
 	createTabs : function() {
-		var tabs = this.DEFAULTTABS.tabs;
+		var tabs = this.tabs.tabs;
 		$(this.div).append($('<ul>'));
 		for (var i = 0; i < tabs.length; i++) {
 			$(this.div + " ul").append($('<li>').append($('<a href=#' + tabs[i] + '>').text(tabs[i])));
@@ -108,10 +115,13 @@ TOC.Control = TOC.Class.extend({
 	 */
 	createTOC : function(response, context) {
 		if (typeof response.type !== 'undefined') {
-			context.DEFAULTTYPE = response.type;
+			context.tocType = response.type;
 		}
 		if (typeof response.tabs !== 'undefined') {
-			context.DEFAULTTABS.tabs = response.tabs;
+			context.tabs.tabs = response.tabs;
+		}
+		if (typeof response.firstBaseLayers !== 'undefined') {
+			context.firstBaseLayers = response.firstBaseLayers;
 		}
 		var this_ = context;
 		this_.createTabs();
@@ -130,7 +140,7 @@ TOC.Control = TOC.Class.extend({
 		var visibles_ol = $('<div>')
 			.attr('id', 'visible_overlay_layer')
 			.append($('<span class="visible_ov_layer">').text('Capas'));
-		$('#' + this.DEFAULTTABS.tabs[1]).css('list-style' ,'none')
+		$('#' + this.tabs.tabs[1]).css('list-style' ,'none')
 				.append(visible_bl)
 				.append(visibles_ol);
 		
@@ -200,7 +210,7 @@ TOC.Control = TOC.Class.extend({
 
         var layers = this.map.layers.slice();
         
-    	if (this.DEFAULTTYPE == 'accordion') {
+    	if (this.tocType == 'accordion') {
     		var groups = [];
 	        for(var i = 0; i < this.map.layers.length; i++) {
 	            var layer = this.map.layers[i];
@@ -213,8 +223,8 @@ TOC.Control = TOC.Class.extend({
 	        	if ('#' + groups[i] != null) {
 	        		$('#' + groups[i]).empty();
 	        	} else {
-		            $('#' + this.DEFAULTTABS.tabs[0]).append($('<h3>').text(groups[i]));
-		            $('#' + this.DEFAULTTABS.tabs[0]).append($('<div id="' + groups[i] + '">'));
+		            $('#' + this.tabs.tabs[0]).append($('<h3>').text(groups[i]));
+		            $('#' + this.tabs.tabs[0]).append($('<div id="' + groups[i] + '">'));
 	        	}
 	        }
 
@@ -224,7 +234,7 @@ TOC.Control = TOC.Class.extend({
 	            this.addLayerToGroup(group, layer);
 	        }
 			return;
-    	} else if (this.DEFAULTTYPE == 'tree') {
+    	} else if (this.tocType == 'tree') {
 	        if (!this.reverse) { layers.reverse(); }
 	
 	        var baselayers = [], overlays = [];
@@ -411,10 +421,15 @@ TOC.Control = TOC.Class.extend({
             changelayer: this.redraw,
             scope: this
         });
-		if (this.DEFAULTTYPE == 'tree') {
-
-			$('#' + this.DEFAULTTABS.tabs[0]).append($('<div id="tree1_' + this.DEFAULTTABS.tabs[0] + '">'));
-			$('#' + this.DEFAULTTABS.tabs[0]).append($('<div id="tree2_' + this.DEFAULTTABS.tabs[0] + '">'));
+		if (this.tocType == 'tree') {
+			
+			if (this.firstBaseLayers) {
+				$('#' + this.tabs.tabs[0]).append($('<div id="tree1_' + this.tabs.tabs[0] + '">'));
+				$('#' + this.tabs.tabs[0]).append($('<div id="tree2_' + this.tabs.tabs[0] + '">'));
+			} else {
+				$('#' + this.tabs.tabs[0]).append($('<div id="tree2_' + this.tabs.tabs[0] + '">'));
+				$('#' + this.tabs.tabs[0]).append($('<div id="tree1_' + this.tabs.tabs[0] + '">'));
+			}
 
 
 	        if (!this.reverse) { layers.reverse(); }
@@ -428,7 +443,7 @@ TOC.Control = TOC.Class.extend({
 	            }
 	        }
 
-	        this.baseLayersTree = $('#tree1_' + this.DEFAULTTABS.tabs[0]).dynatree({
+	        this.baseLayersTree = $('#tree1_' + this.tabs.tabs[0]).dynatree({
 			  classNames: {
 					container: 'dynatree-container-external',
 			        focused: 'dynatree-focused-external',
@@ -450,7 +465,7 @@ TOC.Control = TOC.Class.extend({
 	          debugLevel: 0
 	        });
 
-	        this.overlaysTree = $('#tree2_' + this.DEFAULTTABS.tabs[0]).dynatree({
+	        this.overlaysTree = $('#tree2_' + this.tabs.tabs[0]).dynatree({
 			  classNames: {
 					container: 'dynatree-container-external',
 			        focused: 'dynatree-focused-external',
@@ -482,12 +497,12 @@ TOC.Control = TOC.Class.extend({
 
 	            if ($.inArray(group, groups) == -1) {
 		            groups.push(group);
-		            $('#' + this.DEFAULTTABS.tabs[0]).append($('<h3>').text(group));
-		            $('#' + this.DEFAULTTABS.tabs[0]).append($('<div id="' + group + '">'));
+		            $('#' + this.tabs.tabs[0]).append($('<h3>').text(group));
+		            $('#' + this.tabs.tabs[0]).append($('<div id="' + group + '">'));
 	            }
 	            this.addLayerToGroup(group, layer);
 	        }
-	        $('#' + this.DEFAULTTABS.tabs[0]).accordion();
+	        $('#' + this.tabs.tabs[0]).accordion();
 		}
 	},
 	
