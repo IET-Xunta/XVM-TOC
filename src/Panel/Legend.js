@@ -22,7 +22,8 @@ TOC.Legend = TOC.Class.extend({
 	DEFAULT_PARAMS : {
 		service : 'wms',
 		request : 'getlegendgraphic',
-		format : 'image/png'
+		format : 'image/png', 
+		version : '1.1.1'
 	},	
 	
 	/**
@@ -49,10 +50,11 @@ TOC.Legend = TOC.Class.extend({
 		var layers = null;
 		if(layer.params != undefined) {
 			//this.createTableLegend(layer);
-			if(layer.params.LAYERS instanceof Array) {
-				layers = layer.params.LAYERS;
+			var thelayers = layer.params.LAYERS.split(',');
+			if( thelayers instanceof Array) {
+				layers = thelayers;
 			} else {
-				layers = new Array(layer.params.LAYERS);
+				layers = new Array(thelayers);
 			}
 		}
 		
@@ -64,7 +66,8 @@ TOC.Legend = TOC.Class.extend({
 			$.extend(layer_petition, this.DEFAULT_PARAMS);
 			var paramStr = TOC.Util.getParameterString(layer_petition);
 			var legendUrl = TOC.Util.urlAppend(layer.url, paramStr);
-			var image = $('<img>');
+			var image = $('<img>')
+				.attr('src', 'toc/images/loading.gif');
 			var line = $('<li>');
 			image.error(function(evt){
 				image.remove();
