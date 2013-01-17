@@ -41,8 +41,8 @@ TOC.Panel = TOC.Class.extend({
 	 * Draw into viewport the panel with controls
 	 */
 	draw : function() {
-		this.div = $('<div>');
-		this.div.attr("id", "id_panel_" + this.layer.name);
+		this.div = $('<div>')
+			.attr("id", "id_panel_" + TOC.Util.killWhiteSpace(this.layer.name));
 		$(this.layer.map.viewPortDiv).append(this.div);
 		this.div.dialog({
 			resizable : true,
@@ -73,7 +73,7 @@ TOC.Panel = TOC.Class.extend({
 
 		// add slider control
 		var slider = $("<div>");
-		slider.attr("id", "id_slider_" + this.layer.name);
+		slider.attr("id", "id_slider_" + TOC.Util.killWhiteSpace(this.layer.name));
 		this.div.append(slider);
 
 		if(!this.layer.opacity) {
@@ -95,12 +95,12 @@ TOC.Panel = TOC.Class.extend({
 
 		//add legend control
 		var legend = $('<div>')		
-			.attr("id", "id_legend_" + this.layer.name)
+			.attr("id", "id_legend_" + TOC.Util.killWhiteSpace(this.layer.name))
 			.css({
 			'margin' : '5px'
 		});
 		this.div.append(legend);
-		this.legendControl = new TOC.Legend("id_legend_" + this.layer.name);
+		this.legendControl = new TOC.Legend("id_legend_" + TOC.Util.killWhiteSpace(this.layer.name));
 		this.legendControl.getLegendGraphic(this.layer);
 	},
 

@@ -61,7 +61,7 @@ TOC.Legend = TOC.Class.extend({
 		var ul = $('<ul>').attr('id', 'legend_ul')
 			.css('list-style', 'none');
 		for(var n in layers) {
-			var layer_name = layers[n];
+			var layer_name = $.trim(layers[n]);
 			var layer_petition = {'layer' : layer_name};
 			$.extend(layer_petition, this.DEFAULT_PARAMS);
 			var paramStr = TOC.Util.getParameterString(layer_petition);
@@ -75,11 +75,12 @@ TOC.Legend = TOC.Class.extend({
 						attr('class', 'legendSpan').
 						text('Non hai lenda para a capa seleccionada.')); // TODO Localize
 			});
-			image.attr('id', 'legend_img_' + layer.name)
+			image.attr('id', 'legend_img_' + layer_name)
 				.attr('src', legendUrl)
-				.attr('title', layer.name);
-			
+				.attr('title', layer_name);
+
 			line.append(image);
+			line.append($('<span>').text(layer_name).css('margin-left', '2px'));
 			ul.append(line);
 		}
 		this.div.append(ul);

@@ -60,6 +60,8 @@ var TOC = {
 	    return newUrl;
 	}, 'replaceAll' : function(cadena, str1, str2, ignore){
 		   return cadena.replace(new RegExp(str1.replace(/([\,\!\\\^\$\{\}\[\]\(\)\.\*\+\?\|\<\>\-\&])/g, function(c){return "\\" + c;}), "g"+(ignore?"i":"")), str2);
+	}, 'killWhiteSpace' : function(str) {
+		return str.replace(/\s+/g, '');
 	}
 	}
 };
